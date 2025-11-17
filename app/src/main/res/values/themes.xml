@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Fitting4U" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Fitting4U" parent="android:Theme.Material.Light.NoActionBar">
+
+        <!-- Your splash screen icon -->
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/logo</item>
+
+        <!-- Background color of splash -->
+        <item name="android:windowSplashScreenBackground">#ffffff</item>
+
+        <!-- Optional duration -->
+        <item name="android:windowSplashScreenAnimationDuration">500</item>
+    </style>
+
 </resources>

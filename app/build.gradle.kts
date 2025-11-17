@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("kotlin-kapt")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -57,4 +59,44 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+//  navigation
+    implementation("androidx.navigation:navigation-compose:2.8.3")
+
+//  di
+    implementation("com.google.dagger:hilt-android:2.51")
+    kapt("com.google.dagger:hilt-compiler:2.51")
+
+//  Retrofit and okhttp
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+
+//coil
+
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
+//  firebase
+    implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
+    implementation("com.google.firebase:firebase-auth:23.0.0")
+    implementation("com.google.firebase:firebase-firestore:25.1.0")
+    implementation("com.google.firebase:firebase-storage:21.0.0")
+
+// material icons
+    implementation("androidx.compose.material:material-icons-extended:1.6.8")
+
+//    room db
+    implementation("androidx.room:room-runtime:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+
+// Kotlin Extensions + Coroutines support
+    implementation("androidx.room:room-ktx:2.6.1")
+
+// Optional: Paging integration (if you use Paging 3 later)
+    implementation("androidx.room:room-paging:2.6.1")
+
+//    splash screen
+    implementation("androidx.core:core-splashscreen:1.0.1")
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "442362040642",
+    "project_id": "fitting4u-1a412",
+    "storage_bucket": "fitting4u-1a412.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:442362040642:android:cc38bf74c04ff4a69638db",
+        "android_client_info": {
+          "package_name": "com.fitting4u.fitting4u"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzmrIRWnjiX4yU3w7bVjzQeUzJgBmY7OY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
