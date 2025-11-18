@@ -39,12 +39,25 @@ fun FabricExploreScreen(
     val state by vm.state.collectAsState()
 
     val listState = rememberLazyListState()
+    // Infinite Scroll Pagination
+    LaunchedEffect(listState, state.isLoading, state.page, state.totalPages) {
+        snapshotFlow { listState.layoutInfo }
+            .collectLatest { info ->
+                val lastVisible = info.visibleItemsInfo.lastOrNull()?.index ?: return@collectLatest
+
+                if (
+                    lastVisible >= info.totalItemsCount - 4 &&  // near the bottom
+                    !state.isLoading &&
+                    state.page < state.totalPages
+                ) {
+                    println("🟡 PAGINATION → Loading page ${state.page + 1}")
+                    vm.loadNextPage()
+                }
+            }
+    }
     val selectedFilters = remember { mutableStateMapOf<String, String?>() }
 
-    // DEBUG
-    LaunchedEffect(state.fabrics) {
-        println("🟢 FABRICS UPDATED: size=${state.fabrics.size}")
-    }
+
 
     Column(
         modifier = Modifier
