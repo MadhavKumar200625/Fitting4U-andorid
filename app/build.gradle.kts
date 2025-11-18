@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.dagger.hilt.android")
     id("kotlin-kapt")
     id("com.google.gms.google-services")
 }
@@ -24,7 +25,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -52,6 +53,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.runtime.livedata)
+    implementation(libs.androidx.compose.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -60,11 +63,14 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
+    implementation("com.google.android.material:material:1.11.0")
+
 //  navigation
     implementation("androidx.navigation:navigation-compose:2.8.3")
 
 //  di
     implementation("com.google.dagger:hilt-android:2.51")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     kapt("com.google.dagger:hilt-compiler:2.51")
 
 //  Retrofit and okhttp
@@ -79,10 +85,12 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.6.0")
 
 //  firebase
+    // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
-    implementation("com.google.firebase:firebase-auth:23.0.0")
-    implementation("com.google.firebase:firebase-firestore:25.1.0")
-    implementation("com.google.firebase:firebase-storage:21.0.0")
+// Then add the Firebase libraries without specifying versions:
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
 
 // material icons
     implementation("androidx.compose.material:material-icons-extended:1.6.8")
@@ -99,4 +107,10 @@ dependencies {
 
 //    splash screen
     implementation("androidx.core:core-splashscreen:1.0.1")
+
+
+
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
+
+
 }
