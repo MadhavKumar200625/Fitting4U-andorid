@@ -43,32 +43,29 @@ fun FabricTopBar(onSearchClick: () -> Unit) {
                     colors = listOf(
                         accentPink.copy(alpha = 0.95f),
                         accentPink.copy(alpha = 0.75f),
+                        accentPink.copy(alpha = 0.65f),
+                        accentPink.copy(alpha = 0.45f),
                         accentPink.copy(alpha = 0.20f),
                         accentPink.copy(alpha = 0.05f),
                         MaterialTheme.colorScheme.background
                     )
                 )
-            )
-            .padding(horizontal = 20.dp, vertical = 28.dp)
+            ).padding(horizontal = 20.dp, vertical = 20.dp)
     ) {
 
         Column {
 
-            Text(
-                text = "Fabrics",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = primaryBlue
-                )
-            )
 
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(18.dp))
+
 
             Text(
+                modifier = Modifier.padding(horizontal = 5.dp),
                 text = "Premium fabrics curated for you",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = primaryBlue.copy(alpha = 0.7f)
                 )
+
             )
 
             Spacer(Modifier.height(18.dp))

@@ -3,6 +3,9 @@ package com.fitting4u.fitting4u.Data.repository
 import com.fitting4u.fitting4u.Data.local.room.Fabric.Home.FabricHomeDao
 import com.fitting4u.fitting4u.Data.local.room.Fabric.Home.FabricHomeEntity
 import com.fitting4u.fitting4u.Data.remote.api.FabricApi
+import com.fitting4u.fitting4u.Data.remote.dto.fabric.Fabric.FabricDto
+import com.fitting4u.fitting4u.Data.remote.dto.fabric.Fabric.Faq
+import com.fitting4u.fitting4u.Data.remote.dto.fabric.Fabric.Review
 import com.fitting4u.fitting4u.Data.remote.dto.fabric.FabricHome.FabricHomeDto
 import com.fitting4u.fitting4u.Data.remote.dto.fabric.explore.FabricExploreDto
 import com.fitting4u.fitting4u.common.Constants
@@ -59,23 +62,43 @@ class FabricRepositoryImpl @Inject constructor(
         page: Int,
         limit: Int
     ): FabricExploreDto {
-
-        println("🟦 REPO → explore() called with page=$page search=$search")
-
         try {
             val response = api.explore(
                 search, collection, color, material, weave, gender,
                 minPrice, maxPrice, minStars, page, limit
             )
 
-            println("🟩 REPO → API returned fabrics=${response.fabrics.size}")
-            println("🟩 REPO → totalPages=${response.totalPages} total=${response.total}")
-
             return response
 
         } catch (e: Exception) {
-            println("🔴 REPO → explore() FAILED: ${e.localizedMessage}")
             throw e
         }
+    }
+    override suspend fun getFabric(idOrSlug: String): FabricDto {
+//        return FabricDto(
+//            _id = "691888d3f0577070facaf8c8",
+//            name = "MULTICOLOR DIGITAL PRINTED FABRIC",
+//            slug = "multicolor-digital-printed-fabric-2",
+//            images = listOf(
+//                // local file path from your uploaded assets (developer note)
+//                "/mnt/data/Screenshot 2025-11-19 at 6.55.58 AM.png",
+//                "https://cdn.shopify.com/s/files/1/0648/9836/7707/files/SFC0005506_1.jpg?v=1732798314"
+//            ),
+//            price = 879.76,
+//            customerPrice = 628.4,
+//            boutiquePrice = 399.0,
+//            stockLeft = 0.0,
+//            width = 44.0,
+//            material = "Polyester",
+//            weave = "Plain",
+//            color = "Multicolor",
+//            description = "A premium multicolor digital print fabric, ideal for dresses and crafts.",
+//            careInstructions = listOf("Gentle wash", "Do not bleach"),
+//            faqs = listOf(Faq(question = "Is it stretchable?", answer = "No")),
+//            reviews = listOf(Review(createdAt = "", name = "Sonia", review = "Lovely fabric!", stars = 5.0)),
+//            avgStars = 5.0,
+//            status = "Active"
+//        )
+        return api.getFabricByIdOrSlug(idOrSlug)
     }
 }

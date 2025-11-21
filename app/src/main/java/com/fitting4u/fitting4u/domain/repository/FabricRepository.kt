@@ -1,5 +1,6 @@
 package com.fitting4u.fitting4u.domain.repository
 
+import com.fitting4u.fitting4u.Data.remote.dto.fabric.Fabric.FabricDto
 import com.fitting4u.fitting4u.Data.remote.dto.fabric.FabricHome.FabricHomeDto
 import com.fitting4u.fitting4u.Data.remote.dto.fabric.explore.FabricExploreDto
 
@@ -22,4 +23,6 @@ interface FabricRepository {
         page: Int,
         limit: Int
     ): FabricExploreDto
+
+    suspend fun getFabric(idOrSlug: String): FabricDto
 }

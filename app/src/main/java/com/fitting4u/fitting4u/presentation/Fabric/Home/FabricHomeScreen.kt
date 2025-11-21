@@ -9,7 +9,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.fitting4u.fitting4u.presentation.Fabric.FabricHomeViewModel
 
 @Composable
 fun FabricHomeScreen(

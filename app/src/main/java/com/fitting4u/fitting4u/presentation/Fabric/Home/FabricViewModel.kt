@@ -1,4 +1,4 @@
-package com.fitting4u.fitting4u.presentation.Fabric
+package com.fitting4u.fitting4u.presentation.Fabric.Home
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

@@ -3,6 +3,7 @@ package com.fitting4u.fitting4u.di
 import android.content.Context
 import androidx.room.Room
 import com.fitting4u.fitting4u.Data.local.room.AppDatabase
+import com.fitting4u.fitting4u.Data.local.room.Cart.CartDao
 
 import com.fitting4u.fitting4u.Data.local.room.Config.ConfigDao
 import com.fitting4u.fitting4u.Data.local.room.Fabric.Home.FabricHomeDao
@@ -35,4 +36,7 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideFabricHomeDao(db: AppDatabase): FabricHomeDao = db.fabricHomeDao
+
+    @Provides
+    fun provideCartDao(db: AppDatabase): CartDao = db.cartDao
 }

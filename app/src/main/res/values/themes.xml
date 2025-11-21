@@ -2,7 +2,7 @@
 <resources>
 
     <style name="Theme.Fitting4U"  parent="Theme.Material3.Light.NoActionBar">
-
+        <item name="android:forceDarkAllowed">false</item>
         <!-- Your splash screen icon -->
         <item name="android:windowSplashScreenAnimatedIcon">@mipmap/logo</item>
 

@@ -24,6 +24,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -46,12 +48,17 @@ fun FeaturedFabricsRow(
     navController: NavController
 ) {
     LazyRow(
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(fabrics) { item ->
-            FeaturedFabricCard(item) {
-                navController.navigate("fabricDetail/${item.slug}")
+            Box(
+                modifier = Modifier
+                    .width(200.dp)
+            ) {
+                FeaturedFabricCard(item) {
+                    navController.navigate("fabricDetail/${item.slug}")
+                }
             }
         }
     }
@@ -62,85 +69,87 @@ fun FeaturedFabricCard(
     item: FeaturedFabric,
     onClick: () -> Unit
 ) {
-    val pureWhite = Color(0xFFFFFFFF)
-    val primaryBlue = Color(0xFF003466)
-    val accentPink = Color(0xFFFFC1CC)
-
-    Box(
+    Card(
         modifier = Modifier
-            .width(170.dp)
+            .fillMaxWidth()
+            .padding(4.dp)
             .shadow(
-                elevation = 10.dp,
-                shape = RoundedCornerShape(22.dp),
-                clip = false
+                elevation = 4.dp,
+                shape = RoundedCornerShape(18.dp),
+                spotColor = Color(0x22000000)
             )
-            .clip(RoundedCornerShape(22.dp))
-            .background(pureWhite) // ONE UNIFIED WHITE
-            .border(
-                width = 1.dp,
-                brush = Brush.linearGradient(
-                    listOf(
-                        primaryBlue.copy(alpha = 0.08f),
-                        accentPink.copy(alpha = 0.08f)
-                    )
-                ),
-                shape = RoundedCornerShape(22.dp)
-            )
-            .clickable { onClick() }
+            .clip(RoundedCornerShape(18.dp))
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        )
     ) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
 
-        Column {
-
+            // IMAGE
             AsyncImage(
                 model = item.images.firstOrNull(),
                 contentDescription = item.name,
-                contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .height(190.dp)
+                    .height(160.dp)
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp))
-                    .background(pureWhite) // same white
+                    .clip(RoundedCornerShape(16.dp)),
+                contentScale = ContentScale.Crop
             )
 
-            Column(modifier = Modifier.padding(14.dp)) {
+            Spacer(Modifier.height(12.dp))
 
-                Text(
-                    text = item.name,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        color = primaryBlue
-                    ),
-                    maxLines = 2
+            // TITLE
+            Text(
+                text = item.name,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF222222)
                 )
+            )
 
-                Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(4.dp))
 
+            // SUBTITLE
+            Text(
+                text = item.material,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = Color(0xFF666666)
+                ),
+                maxLines = 2
+            )
+
+            Spacer(Modifier.height(10.dp))
+
+            // PRICE + RATING
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
 
                 Text(
-                    text = "₹${item.customerPrice}",
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color(0xFF008043),          // premium green price
-                        fontWeight = FontWeight.Bold
+                    text = "₹${item.customerPrice.toInt()}",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111111)
                     )
                 )
 
-                Spacer(Modifier.height(8.dp))
-
                 Row(verticalAlignment = Alignment.CenterVertically) {
-
                     Icon(
                         Icons.Default.Star,
                         contentDescription = null,
                         tint = Color(0xFFFFC107),
                         modifier = Modifier.size(18.dp)
                     )
-
-                    Spacer(modifier = Modifier.width(4.dp))
-
+                    Spacer(Modifier.width(4.dp))
                     Text(
                         text = item.avgStars.toString(),
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = primaryBlue.copy(alpha = 0.8f)
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = Color(0xFF444444)
                         )
                     )
                 }

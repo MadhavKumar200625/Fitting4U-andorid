@@ -90,11 +90,11 @@ class FabricExploreViewModel @Inject constructor(
                         fabrics = newList,
                         filtersLoaded = true,
                         filters = mapOf(
-                            "collections" to resp.filters.collections,
-                            "materials" to resp.filters.materials,
-                            "weaves" to resp.filters.weaves,
-                            "colors" to resp.filters.colors,
-                            "genders" to resp.filters.genders
+                            "collection" to resp.filters.collections,
+                            "material" to resp.filters.materials,
+                            "weave" to resp.filters.weaves,
+                            "color" to resp.filters.colors,
+                            "gender" to resp.filters.genders
                         ),
                         page = resp.page,
                         totalPages = resp.totalPages,

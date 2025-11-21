@@ -1,9 +1,11 @@
 package com.fitting4u.fitting4u.Data.remote.api
 
 
+import com.fitting4u.fitting4u.Data.remote.dto.fabric.Fabric.FabricDto
 import com.fitting4u.fitting4u.Data.remote.dto.fabric.FabricHome.FabricHomeDto
 import com.fitting4u.fitting4u.Data.remote.dto.fabric.explore.FabricExploreDto
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface FabricApi {
@@ -25,4 +27,9 @@ interface FabricApi {
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20
     ): FabricExploreDto
+
+    @GET("api/fabrics/application/details/{id}")
+    suspend fun getFabricByIdOrSlug(
+        @Path("id") idOrSlug: String
+    ): FabricDto
 }

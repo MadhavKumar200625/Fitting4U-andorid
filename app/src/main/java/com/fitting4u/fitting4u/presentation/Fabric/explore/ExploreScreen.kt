@@ -1,423 +1,280 @@
 package com.fitting4u.fitting4u.presentation.Fabric.explore
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.fitting4u.fitting4u.Data.remote.dto.fabric.explore.Fabric
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
-/* ------------------------------------------------------
-   MAIN SCREEN
--------------------------------------------------------*/
+
+/* -------------------------------------------------------------------------- */
+/*                              MAIN SCREEN                                   */
+/* -------------------------------------------------------------------------- */
+
 @Composable
 fun FabricExploreScreen(
+    navController: NavController,
     vm: FabricExploreViewModel = hiltViewModel(),
-    onOpenFilters: () -> Unit = {}
+
 ) {
     val state by vm.state.collectAsState()
+    val gridState = rememberLazyGridState()
+    val coroutine = rememberCoroutineScope()
 
-    val listState = rememberLazyListState()
-    // Infinite Scroll Pagination
-    LaunchedEffect(listState, state.isLoading, state.page, state.totalPages) {
-        snapshotFlow { listState.layoutInfo }
-            .collectLatest { info ->
-                val lastVisible = info.visibleItemsInfo.lastOrNull()?.index ?: return@collectLatest
+    var localQuery by rememberSaveable { mutableStateOf("") }
 
-                if (
-                    lastVisible >= info.totalItemsCount - 4 &&  // near the bottom
-                    !state.isLoading &&
-                    state.page < state.totalPages
-                ) {
-                    println("🟡 PAGINATION → Loading page ${state.page + 1}")
+    var sheetVisible by remember { mutableStateOf(false) }
+
+    // this holds what user has applied (real applied filters)
+    val appliedFilters = remember { mutableStateMapOf<String, String?>() }
+
+    /* ---------------- Search Debounce ---------------- */
+    LaunchedEffect(localQuery) {
+        val text = localQuery
+        delay(300)
+        if (text == localQuery) {
+            vm.setSearch(if (text.isBlank()) null else text)
+        }
+    }
+
+    /* ---------------- Pagination ---------------- */
+    LaunchedEffect(gridState, state.isLoading, state.page, state.totalPages) {
+        snapshotFlow { gridState.layoutInfo }
+            .map { it.visibleItemsInfo.lastOrNull()?.index ?: -1 }
+            .distinctUntilChanged()
+            .collectLatest { lastVisible ->
+                val total = gridState.layoutInfo.totalItemsCount
+                if (lastVisible >= total - 6 && !state.isLoading && state.page < state.totalPages) {
                     vm.loadNextPage()
                 }
             }
     }
-    val selectedFilters = remember { mutableStateMapOf<String, String?>() }
 
+    /* ------------------- UI ---------------------- */
 
-
-    Column(
-        modifier = Modifier
+    Box(
+        Modifier
             .fillMaxSize()
             .background(Color(0xFFF5F7FA))
     ) {
+        Column(Modifier.fillMaxSize()) {
 
-        Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(18.dp))
 
-        ExploreSearchBar(
-            query = "",
-            onQueryChange = {},
-            onSearch = { vm.setSearch(it) },
-            onOpenFilters = onOpenFilters
-        )
+            SearchBar(
+                query = localQuery,
+                onQueryChange = { localQuery = it },
+                onFiltersClick = { sheetVisible = true },
+                onClear = { localQuery = ""; vm.setSearch(null) }
+            )
 
-        if (state.filtersLoaded) {
-            FullFilterBlock(
-                filters = state.filters,
-                selectedFilters = selectedFilters,
-                onSelect = { key, value ->
-                    val current = selectedFilters[key]
-
-                    if (current == value) {
-                        selectedFilters.remove(key)
+            if (appliedFilters.isNotEmpty()) {
+                AppliedFiltersRow(
+                    applied = appliedFilters,
+                    onRemove = { key ->
+                        appliedFilters.remove(key)
                         vm.updateFilter(key, null)
-                    } else {
-                        selectedFilters[key] = value
+                    }
+                )
+            }
+
+            if (state.isLoading && state.fabrics.isEmpty()) {
+                Box(Modifier.fillMaxSize(), Alignment.Center) {
+                    CircularProgressIndicator(color = Color(0xFF003466))
+                }
+            } else {
+                FabricList(
+                    state = state,
+                    gridState = gridState,
+                    onItemClick = {navController.navigate("fabricDetail/${it.slug}")}
+                )
+            }
+        }
+
+        /* ------------------ FILTER SHEET ------------------ */
+        FilterBottomSheet(
+            visible = sheetVisible,
+            filters = state.filters,
+            appliedFilters = appliedFilters,
+            onDismissRequest = { sheetVisible = false },
+            onApply = { newMap ->
+                coroutine.launch {
+                    appliedFilters.clear()
+                    appliedFilters.putAll(newMap)
+
+                    // update VM filters
+                    newMap.forEach { (key, value) ->
                         vm.updateFilter(key, value)
                     }
-                },
-                onClearAll = {
-                    selectedFilters.clear()
-                    vm.refresh()
-                }
-            )
-        }
 
-        if (state.isLoading && state.fabrics.isEmpty()) {
-            Box(Modifier.fillMaxSize(), Alignment.Center) {
-                CircularProgressIndicator(color = Color(0xFF003466))
+                    vm.setSearch(if (localQuery.isBlank()) null else localQuery)
+
+                    sheetVisible = false
+                }
+            },
+            onClearAll = {
+                coroutine.launch {
+                    appliedFilters.clear()
+                    vm.refresh()
+                    sheetVisible = false
+                }
             }
-        } else {
-            FabricList(
-                state = state,
-                listState = listState,
-                onItemClick = { println("Clicked → ${it.slug}") }
-            )
-        }
+        )
     }
 }
 
-/* ------------------------------------------------------
-   SEARCH BAR
--------------------------------------------------------*/
+/* -------------------------------------------------------------------------- */
+/*                           SEARCH BAR                                       */
+/* -------------------------------------------------------------------------- */
+
 @Composable
-fun ExploreSearchBar(
+fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
-    onSearch: (String) -> Unit,
-    onOpenFilters: () -> Unit
+    onFiltersClick: () -> Unit,
+    onClear: () -> Unit
 ) {
-    var localQuery by remember { mutableStateOf(query) }
-    val primaryBlue = Color(0xFF003466)
+    val blue = Color(0xFF003466)
+    var isFocused by remember { mutableStateOf(false) }
 
-    Column(
+    Row(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
     ) {
-        Row(
+
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .shadow(6.dp, RoundedCornerShape(16.dp))
-                .background(Color.White, RoundedCornerShape(16.dp))
-                .border(1.dp, Color(0xFFE8EDF3), RoundedCornerShape(16.dp))
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            Icon(Icons.Default.Search, null, tint = primaryBlue)
-
-            Spacer(Modifier.width(10.dp))
-
-            TextField(
-                value = localQuery,
-                onValueChange = {
-                    localQuery = it
-                    onQueryChange(it)
-                },
-                placeholder = { Text("Search fabrics, prints, colors...") },
-                singleLine = true,
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    cursorColor = primaryBlue,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                ),
-                modifier = Modifier.weight(1f)
-            )
-
-            Text(
-                "Go",
-                Modifier
-                    .clickable { onSearch(localQuery) }
-                    .padding(10.dp),
-                color = primaryBlue,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        Spacer(Modifier.height(8.dp))
-    }
-}
-
-/* ------------------------------------------------------
-   COLLAPSABLE FULL FILTER BLOCK
--------------------------------------------------------*/
-@Composable
-fun FullFilterBlock(
-    filters: Map<String, List<String>>,
-    selectedFilters: MutableMap<String, String?>,
-    onSelect: (String, String) -> Unit,
-    onClearAll: () -> Unit
-) {
-    var filtersExpanded by remember { mutableStateOf(true) }
-
-    Column(Modifier.padding(horizontal = 16.dp)) {
-
-        // TOP BAR
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { filtersExpanded = !filtersExpanded }
-                .padding(vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                "Filters",
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF003466),
-                modifier = Modifier.weight(1f)
-            )
-
-            Icon(
-                imageVector = if (filtersExpanded) Icons.Default.KeyboardArrowUp
-                else Icons.Default.KeyboardArrowDown,
-                contentDescription = null,
-                tint = Color(0xFF003466)
-            )
-        }
-
-        // CLEAR ALL
-        if (filtersExpanded) {
-            Text(
-                "Clear All",
-                color = Color(0xFF003466),
-                modifier = Modifier
-                    .clickable { onClearAll() }
-                    .padding(bottom = 10.dp)
-            )
-        }
-
-        AnimatedVisibility(
-            visible = filtersExpanded,
-            enter = expandVertically(),
-            exit = shrinkVertically()
-        ) {
-            Column {
-                filters.forEach { (key, list) ->
-                    CollapsableFilterGroup(
-                        title = key,
-                        values = list,
-                        selected = selectedFilters[key],
-                        onSelect = { onSelect(key, it) },
-                        onClear = { onSelect(key, "") }
+                .weight(1f)
+                .shadow(
+                    elevation = 12.dp,
+                    shape = RoundedCornerShape(26.dp),
+                    ambientColor = Color.Black.copy(alpha = 0.10f),
+                    spotColor = Color.Black.copy(alpha = 0.18f)
+                )
+                .clip(RoundedCornerShape(26.dp))
+                .background(
+                    Brush.linearGradient(
+                        listOf(
+                            Color.White,
+                            Color(0xFFF9FBFF)
+                        )
                     )
-                }
-            }
-        }
-    }
-}
-
-/* ------------------------------------------------------
-   INDIVIDUAL COLLAPSABLE FILTER GROUP
--------------------------------------------------------*/
-@Composable
-fun CollapsableFilterGroup(
-    title: String,
-    values: List<String>,
-    selected: String?,
-    onSelect: (String) -> Unit,
-    onClear: () -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Column(Modifier.fillMaxWidth()) {
-
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded }
-                .padding(vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
+                )
+                .border(
+                    width = 1.dp,
+                    color = if (isFocused) blue.copy(alpha = 0.45f) else Color(0xFFE4E9F1),
+                    shape = RoundedCornerShape(26.dp)
+                )
+                .padding(horizontal = 18.dp, vertical = 10.dp)
         ) {
-            Text(
-                title.replaceFirstChar { it.uppercase() },
-                fontWeight = FontWeight.Medium,
-                color = Color(0xFF003466),
-                modifier = Modifier.weight(1f)
-            )
-
-            Text(
-                if (selected != null) "Clear" else "",
-                color = Color(0xFF003466),
-                modifier = Modifier.clickable { onClear() }
-            )
-
-            Icon(
-                if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = null,
-                tint = Color(0xFF003466)
-            )
-        }
-
-        AnimatedVisibility(expanded) {
-            val scroll = rememberScrollState()
 
             Row(
-                Modifier
-                    .padding(bottom = 6.dp)
-                    .horizontalScroll(scroll),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                values.forEach { value ->
-                    val isSelected = selected == value
 
-                    FilterChip(
-                        label = value,
-                        selected = isSelected,
-                        onClick = { onSelect(value) }
+                Icon(
+                    Icons.Default.Search,
+                    contentDescription = null,
+                    tint = blue.copy(alpha = 0.7f),
+                    modifier = Modifier.size(22.dp)
+                )
+
+                Spacer(Modifier.width(12.dp))
+
+                TextField(
+                    value = query,
+                    onValueChange = { onQueryChange(it) },
+                    placeholder = {
+                        Text(
+                            "Search fabrics, prints, colors",
+                            color = Color(0xFF6A7A90).copy(alpha = 0.55f)
+                        )
+                    },
+                    singleLine = true,
+                    modifier = Modifier
+                        .weight(1f)
+                        .onFocusChanged { isFocused = it.isFocused },
+                    textStyle = MaterialTheme.typography.bodyMedium,
+                    colors = TextFieldDefaults.colors(
+                        focusedTextColor = blue,
+                        unfocusedTextColor = blue,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        cursorColor = blue,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent
+                    )
+                )
+
+                AnimatedVisibility(query.isNotBlank()) {
+                    Text(
+                        "Clear",
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(30.dp))
+                            .clickable { onClear() }
+                            .padding(horizontal = 6.dp, vertical = 4.dp),
+                        color = blue,
+                        fontWeight = FontWeight.Medium
                     )
                 }
-            }
-        }
-    }
-}
 
-/* ------------------------------------------------------
-   CHIP
--------------------------------------------------------*/
-@Composable
-fun FilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    val bg = if (selected) Color(0xFF003466) else Color.White
-    val content = if (selected) Color.White else Color(0xFF003466)
+                Spacer(Modifier.width(10.dp))
 
-    Box(
-        Modifier
-            .background(bg, RoundedCornerShape(18.dp))
-            .border(1.dp, Color(0xFFE6ECF3), RoundedCornerShape(18.dp))
-            .clickable { onClick() }
-            .padding(horizontal = 14.dp, vertical = 8.dp)
-    ) {
-        Text(label, color = content)
-    }
-}
-
-/* ------------------------------------------------------
-   FABRIC LIST
--------------------------------------------------------*/
-@Composable
-fun FabricList(
-    state: ExploreUiState,
-    listState: LazyListState,
-    onItemClick: (Fabric) -> Unit
-) {
-    LazyColumn(
-        state = listState,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(16.dp)
-    ) {
-        items(state.fabrics) { item ->
-            FabricCard(item, onClick = { onItemClick(item) })
-        }
-
-        item {
-            if (state.isLoading) {
-                Box(Modifier.fillMaxWidth(), Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            } else {
-                Spacer(Modifier.height(30.dp))
-            }
-        }
-    }
-}
-
-/* ------------------------------------------------------
-   FABRIC CARD
--------------------------------------------------------*/
-@Composable
-fun FabricCard(item: Fabric, onClick: () -> Unit) {
-    Card(
-        Modifier
-            .fillMaxWidth()
-            .height(150.dp)
-            .clickable { onClick() }
-            .shadow(6.dp, RoundedCornerShape(16.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Row {
-
-            val img = item.images.firstOrNull().takeIf { it!!.isNotBlank() }
-
-            if (img != null) {
-                AsyncImage(
-                    model = img,
-                    contentDescription = item.name,
-                    modifier = Modifier
-                        .width(140.dp)
-                        .fillMaxHeight(),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
+                // PREMIUM FILTER ICON BUTTON
                 Box(
-                    Modifier
-                        .width(140.dp)
-                        .fillMaxHeight()
-                        .background(Color(0xFFF0F4F8)),
-                    Alignment.Center
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(blue.copy(alpha = 0.08f))
+                        .clickable { onFiltersClick() }
+                        .padding(8.dp)
                 ) {
-                    Text("No Image", color = Color.Gray)
-                }
-            }
-
-            Column(
-                Modifier
-                    .padding(12.dp)
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-
-                Column {
-                    Text(item.name, fontWeight = FontWeight.Bold, color = Color(0xFF003466))
-                    Spacer(Modifier.height(4.dp))
-                    Text(item.material, color = Color.Gray)
-                }
-
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("₹${item.customerPrice}", fontWeight = FontWeight.Bold)
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Star, null, tint = Color(0xFFFFC107))
-                        Spacer(Modifier.width(4.dp))
-                        Text(item.avgStars.toString())
-                    }
+                    Icon(
+                        Icons.Default.FilterList,
+                        contentDescription = "Filters",
+                        tint = blue,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
         }

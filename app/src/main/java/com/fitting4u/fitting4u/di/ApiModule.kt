@@ -1,6 +1,7 @@
 package com.fitting4u.fitting4u.di
 
 
+import com.fitting4u.fitting4u.Data.remote.api.CartApi
 import com.fitting4u.fitting4u.Data.remote.api.ConfigApi
 import com.fitting4u.fitting4u.Data.remote.api.FabricApi
 import retrofit2.Retrofit
@@ -25,4 +26,8 @@ object ApiModule {
     fun provideFabricApi(retrofit: Retrofit): FabricApi {
         return retrofit.create(FabricApi::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideCartApi(retrofit: Retrofit): CartApi = retrofit.create(CartApi::class.java)
 }
