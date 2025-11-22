@@ -2,6 +2,7 @@ package com.fitting4u.fitting4u.di
 
 import com.fitting4u.fitting4u.Data.remote.firebase.FirebaseConfigSource
 import com.fitting4u.fitting4u.data.remote.firebase.FirebaseFabricHomeSource
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
 import dagger.Provides
@@ -34,4 +35,9 @@ object FirebaseModule {
     ): FirebaseConfigSource {
         return FirebaseConfigSource(firestore)
     }
+
+    @Provides
+    @Singleton
+    fun provideFirebaseAuth(): FirebaseAuth =
+        FirebaseAuth.getInstance()
 }

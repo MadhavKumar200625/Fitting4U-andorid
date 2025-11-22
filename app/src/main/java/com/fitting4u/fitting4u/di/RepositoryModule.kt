@@ -1,5 +1,9 @@
 package com.fitting4u.fitting4u.di
 
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.dataStoreFile
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import com.fitting4u.fitting4u.Data.local.room.Cart.CartDao
 import com.fitting4u.fitting4u.Data.local.room.Config.ConfigDao
 import com.fitting4u.fitting4u.Data.local.room.Fabric.Home.FabricHomeDao
@@ -18,7 +22,12 @@ import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import androidx.datastore.preferences.core.Preferences
+import com.fitting4u.fitting4u.Data.remote.api.UserApi
+import com.fitting4u.fitting4u.Data.repository.UserRepositoryImpl
+import com.fitting4u.fitting4u.domain.repository.UserRepository
 import javax.inject.Singleton
 
 @Module
@@ -69,4 +78,16 @@ object RepositoryModule {
     ): CartRepository {
         return CartRepositoryImpl(dao, api = api)
     }
+
+
+    @Provides
+    @Singleton
+    fun provideUserRepository(
+        api: UserApi,
+        prefs: DataStore<Preferences>
+    ): UserRepository {
+        return UserRepositoryImpl(api, prefs)
+    }
+
+
 }

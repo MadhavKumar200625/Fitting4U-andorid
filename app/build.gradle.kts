@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.runtime.livedata)
     implementation(libs.androidx.compose.material)
+    implementation(libs.androidx.compose.foundation.layout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -111,6 +112,13 @@ dependencies {
 
 
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
+
+// Datastore (recommended over SharedPrefs)
+    implementation("androidx.datastore:datastore-preferences:1.2.0")
+
+// OTP Auto Read
+    implementation("com.google.android.gms:play-services-auth:21.4.0")
+    implementation("com.google.android.gms:play-services-auth-api-phone:18.3.0")
 
 
 }

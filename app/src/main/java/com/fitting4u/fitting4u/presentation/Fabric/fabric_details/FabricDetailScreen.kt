@@ -15,7 +15,7 @@ fun FabricDetailScreen(
     id: String,
     navController: NavController,
     vm: FabricDetailViewModel = hiltViewModel(),
-    cartVM: CartViewModel = hiltViewModel()
+    cartVM: CartViewModel
 ) {
     val state by vm.state.collectAsState()
     val totalQty by cartVM.totalQty.collectAsState()
