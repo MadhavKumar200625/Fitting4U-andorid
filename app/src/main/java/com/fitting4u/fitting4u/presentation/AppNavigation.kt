@@ -31,6 +31,8 @@ import com.fitting4u.fitting4u.presentation.Fabric.explore.FabricExploreScreen
 import com.fitting4u.fitting4u.presentation.Fabric.Home.FabricHomeScreen
 import com.fitting4u.fitting4u.presentation.Fabric.fabric_details.FabricDetailScreen
 import com.fitting4u.fitting4u.presentation.Fabric.cart.CartScreen
+import com.fitting4u.fitting4u.presentation.boutique.boutique_detail.BoutiqueDetailScreen
+import com.fitting4u.fitting4u.presentation.boutique.home.BoutiqueSearchScreen
 import com.fitting4u.fitting4u.presentation.common.UserViewModel
 import com.fitting4u.fitting4u.presentation.common.sheet.LoginBottomSheet
 import com.fitting4u.fitting4u.presentation.config.ConfigViewModel
@@ -89,10 +91,24 @@ fun AppNavigation(
                 FabricDetailScreen(id, navController, cartVM = cartVM)
             }
 
-            composable(BottomNavItem.Boutiques.route) { BoutiquesScreen() }
+            composable(BottomNavItem.Boutiques.route) { BoutiqueSearchScreen(onClickBoutique = {it-> navController.navigate("boutiqueDetail/${it}")}) }
             composable(BottomNavItem.DesignNow.route) { DesignNowScreen() }
             composable(BottomNavItem.HomeMeasurement.route) { HomeMeasurementScreen() }
             composable(BottomNavItem.Account.route) { AccountScreen() }
+
+            composable(
+                route = NavRoutes.BoutiqueDetail,
+                arguments = listOf(navArgument("slug") { type = NavType.StringType })
+            ) { entry ->
+
+                val slug = entry.arguments?.getString("slug")!!
+                BoutiqueDetailScreen(
+                    id = slug,
+                    onNavigateToBoutiqueSearch = {
+
+                    }
+                )
+            }
 
             // ⭐ SIMPLE LOGIN FLOW ⭐
             composable(NavRoutes.Cart) {

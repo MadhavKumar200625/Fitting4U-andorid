@@ -5,5 +5,5 @@ object NavRoutes {
     const val FabricDetail = "fabricDetail/{id}"
     const val Cart = "cart"
     const val Checkout = "checkout"
-
+    const val BoutiqueDetail = "boutiqueDetail/{slug}"
 }

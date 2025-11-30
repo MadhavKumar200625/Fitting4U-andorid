@@ -25,8 +25,11 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import androidx.datastore.preferences.core.Preferences
+import com.fitting4u.fitting4u.Data.remote.api.BoutiqueApi
 import com.fitting4u.fitting4u.Data.remote.api.UserApi
+import com.fitting4u.fitting4u.Data.repository.BoutiqueRepositoryImpl
 import com.fitting4u.fitting4u.Data.repository.UserRepositoryImpl
+import com.fitting4u.fitting4u.domain.repository.BoutiqueRepository
 import com.fitting4u.fitting4u.domain.repository.UserRepository
 import javax.inject.Singleton
 
@@ -88,6 +91,12 @@ object RepositoryModule {
     ): UserRepository {
         return UserRepositoryImpl(api, prefs)
     }
+
+    @Provides
+    @Singleton
+    fun provideBoutiqueRepository(api: BoutiqueApi): BoutiqueRepository =
+        BoutiqueRepositoryImpl(api)
+
 
 
 }
