@@ -12,6 +12,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Fitting4U">
+
+        <meta-data
+            android:name="com.razorpay.ApiKey"
+            android:value="rzp_live_RnbquJRtJoo0Ki" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -31,6 +31,10 @@ fun FabricHomeContent(
             onSearchClick = {
                 navController.navigate("fabricExplore?searchMode=true")
             }
+            ,
+            onCartClick = {
+                navController.navigate("cart")
+            }
         )
 
         // 🔽 SCROLLABLE CONTENT BELOW

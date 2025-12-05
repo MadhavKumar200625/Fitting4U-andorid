@@ -3,6 +3,7 @@ package com.fitting4u.fitting4u.di
 
 import com.fitting4u.fitting4u.Data.remote.api.BoutiqueApi
 import com.fitting4u.fitting4u.Data.remote.api.CartApi
+import com.fitting4u.fitting4u.Data.remote.api.CheckoutApi
 import com.fitting4u.fitting4u.Data.remote.api.ConfigApi
 import com.fitting4u.fitting4u.Data.remote.api.FabricApi
 import com.fitting4u.fitting4u.Data.remote.api.UserApi
@@ -41,4 +42,9 @@ object ApiModule {
     @Singleton
     fun provideBoutiqueApi(retrofit: Retrofit): BoutiqueApi =
         retrofit.create(BoutiqueApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideCheckoutApi(retrofit: Retrofit): CheckoutApi =
+        retrofit.create(CheckoutApi::class.java)
 }

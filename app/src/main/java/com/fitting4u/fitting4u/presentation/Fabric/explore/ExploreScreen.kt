@@ -1,6 +1,7 @@
 package com.fitting4u.fitting4u.presentation.Fabric.explore
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,13 +34,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
-import com.fitting4u.fitting4u.Data.remote.dto.fabric.explore.Fabric
+
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -94,6 +96,7 @@ fun FabricExploreScreen(
         Modifier
             .fillMaxSize()
             .background(Color(0xFFF5F7FA))
+            .systemBarsPadding()
     ) {
         Column(Modifier.fillMaxSize()) {
 
@@ -170,111 +173,126 @@ fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     onFiltersClick: () -> Unit,
-    onClear: () -> Unit
+    onClear: () -> Unit,
+    onSearchClick: (() -> Unit)? = null
 ) {
     val blue = Color(0xFF003466)
+    val inputBg = Color(0xFFF9FBFF)
+
     var isFocused by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
 
-    Row(
-        Modifier
+    // ✨ Glow effect like boutique search bar
+    val glow by animateDpAsState(
+        targetValue = if (isFocused) 14.dp else 0.dp,
+        animationSpec = tween(350, easing = FastOutSlowInEasing)
+    )
+
+    Box(
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 16.dp , vertical = 8.dp)
+            .shadow(
+                glow,
+                RoundedCornerShape(18.dp),
+                ambientColor = blue
+            )
     ) {
-
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .shadow(
-                    elevation = 12.dp,
-                    shape = RoundedCornerShape(26.dp),
-                    ambientColor = Color.Black.copy(alpha = 0.10f),
-                    spotColor = Color.Black.copy(alpha = 0.18f)
-                )
-                .clip(RoundedCornerShape(26.dp))
-                .background(
-                    Brush.linearGradient(
-                        listOf(
-                            Color.White,
-                            Color(0xFFF9FBFF)
-                        )
-                    )
-                )
-                .border(
-                    width = 1.dp,
-                    color = if (isFocused) blue.copy(alpha = 0.45f) else Color(0xFFE4E9F1),
-                    shape = RoundedCornerShape(26.dp)
-                )
-                .padding(horizontal = 18.dp, vertical = 10.dp)
+        Surface(
+            shape = RoundedCornerShape(18.dp),
+            color = Color.White,
+            tonalElevation = 4.dp
         ) {
-
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .animateContentSize(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
 
-                Icon(
-                    Icons.Default.Search,
-                    contentDescription = null,
-                    tint = blue.copy(alpha = 0.7f),
-                    modifier = Modifier.size(22.dp)
-                )
-
-                Spacer(Modifier.width(12.dp))
-
+                // ⬅️ SEARCH TEXTFIELD (same UI)
                 TextField(
                     value = query,
                     onValueChange = { onQueryChange(it) },
                     placeholder = {
                         Text(
-                            "Search fabrics, prints, colors",
-                            color = Color(0xFF6A7A90).copy(alpha = 0.55f)
+                            "Search fabrics, prints, colors…",
+                            color = Color.Gray.copy(alpha = 0.7f)
                         )
                     },
                     singleLine = true,
                     modifier = Modifier
                         .weight(1f)
+                        .height(52.dp)
                         .onFocusChanged { isFocused = it.isFocused },
-                    textStyle = MaterialTheme.typography.bodyMedium,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search Icon",
+                            tint = blue
+                        )
+                    },
+                    trailingIcon = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+
+                            // 🎛 FILTER BUTTON
+                            IconButton(
+                                onClick = {
+                                    focusManager.clearFocus()
+                                    onFiltersClick()
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Default.FilterList,
+                                    contentDescription = "Filters",
+                                    tint = blue
+                                )
+                            }
+
+                            // ❌ CLEAR BUTTON
+                            if (query.isNotEmpty()) {
+                                IconButton(onClick = { onClear() }) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Clear",
+                                        tint = Color.Gray
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    shape = RoundedCornerShape(14.dp),
                     colors = TextFieldDefaults.colors(
-                        focusedTextColor = blue,
-                        unfocusedTextColor = blue,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
+                        focusedContainerColor = inputBg,
+                        unfocusedContainerColor = inputBg,
                         cursorColor = blue,
                         focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent
+                        unfocusedIndicatorColor = Color.Transparent
                     )
                 )
 
-                AnimatedVisibility(query.isNotBlank()) {
-                    Text(
-                        "Clear",
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(30.dp))
-                            .clickable { onClear() }
-                            .padding(horizontal = 6.dp, vertical = 4.dp),
-                        color = blue,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-
-                Spacer(Modifier.width(10.dp))
-
-                // PREMIUM FILTER ICON BUTTON
-                Box(
+                // 🔍 SEARCH BUTTON (same as boutique)
+                Button(
+                    onClick = {
+                        focusManager.clearFocus()
+                        onSearchClick?.invoke()
+                    },
                     modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(blue.copy(alpha = 0.08f))
-                        .clickable { onFiltersClick() }
-                        .padding(8.dp)
+                        .padding(start = 10.dp)
+                        .height(44.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = blue
+                    ),
+                    shape = RoundedCornerShape(14.dp)
                 ) {
                     Icon(
-                        Icons.Default.FilterList,
-                        contentDescription = "Filters",
-                        tint = blue,
-                        modifier = Modifier.size(20.dp)
+                        Icons.Default.Search,
+                        contentDescription = "Search Now",
+                        tint = Color.White
                     )
+                    Spacer(Modifier.width(6.dp))
+                    Text("Search", color = Color.White)
                 }
             }
         }

@@ -2,6 +2,7 @@ package com.fitting4u.fitting4u.presentation.Fabric.Home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,7 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun FabricTopBar(onSearchClick: () -> Unit) {
+fun FabricTopBar(onSearchClick: () -> Unit,onCartClick: () -> Unit) {
 
     val primaryBlue = Color(0xFF003466)
     val accentPink = Color(0xFFFFC1CC)
@@ -71,13 +72,14 @@ fun FabricTopBar(onSearchClick: () -> Unit) {
             Spacer(Modifier.height(18.dp))
 
             // 🔥 THE MYNTRA STYLE ROW
-            SearchAndIconsRow(onSearchClick, primaryBlue)
+            SearchAndIconsRow(onSearchClick,onCartClick, primaryBlue)
         }
     }
 }
 @Composable
 fun SearchAndIconsRow(
     onSearchClick: () -> Unit,
+    onCartClick: () -> Unit,
     primaryBlue: Color
 ) {
     Row(
@@ -108,7 +110,9 @@ fun SearchAndIconsRow(
             imageVector = Icons.Default.ShoppingCart,
             contentDescription = "Cart",
             tint = primaryBlue,
-            modifier = Modifier.size(26.dp)
+            modifier = Modifier
+                .size(26.dp)
+                .clickable { onCartClick() }
         )
     }
 }

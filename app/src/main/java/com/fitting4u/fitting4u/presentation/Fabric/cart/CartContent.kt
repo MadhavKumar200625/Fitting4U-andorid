@@ -8,21 +8,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.fitting4u.fitting4u.Data.remote.dto.fabric.cart.GetCartDto
+import com.fitting4u.fitting4u.presentation.Fabric.Checkout.CheckoutUiState
 
 @Composable
 fun CartContent(
     data: GetCartDto,
+    ui: CheckoutUiState,                     // 🔵 added
     onIncrease: (id: String, delta: Double) -> Unit,
     onDecrease: (id: String, minus: Double) -> Unit,
     onRemove: (id: String) -> Unit,
-    onCheckout: () -> Unit
+    onProceedToShipping: () -> Unit,          // 🔵 added
+    onPay: (Double) -> Unit                   // 🔵 added
 ) {
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding()        // ⭐ top padding
-            .navigationBarsPadding()    // ⭐ bottom padding
+            .statusBarsPadding()
+            .navigationBarsPadding()
     ) {
 
         LazyColumn(
@@ -32,7 +35,7 @@ fun CartContent(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(
                 top = 12.dp,
-                bottom = 160.dp  // ⭐ space for bottom nav + floating checkout bar
+                bottom = 160.dp
             )
         ) {
 
@@ -51,22 +54,22 @@ fun CartContent(
                 )
             }
 
+            // 🔵 ORDER SUMMARY CARD
             item {
-                Spacer(Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+
                 OrderSummaryCard(
                     subtotal = data.bill.subtotal,
                     delivery = data.bill.delivery,
                     total = data.bill.total,
-                    onCheckout = onCheckout,
+                    ui = ui,
+                    onProceedToShipping = onProceedToShipping,
+                    onPay = { onPay(data.bill.total) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
 
-            // Extra spacing at bottom for safety
-            item { Spacer(Modifier.height(40.dp)) }
+            item { Spacer(modifier = Modifier.height(40.dp)) }
         }
-
-        // ⭐ Floating bar (will appear above bottom nav safely)
-
     }
 }

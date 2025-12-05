@@ -6,4 +6,6 @@ object NavRoutes {
     const val Cart = "cart"
     const val Checkout = "checkout"
     const val BoutiqueDetail = "boutiqueDetail/{slug}"
+
+
 }

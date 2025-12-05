@@ -20,14 +20,18 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.fitting4u.fitting4u.Data.remote.request_model.order.verify.VerifyRequestModel
 import com.fitting4u.fitting4u.presentation.AppNavigation
+import com.fitting4u.fitting4u.presentation.Fabric.Checkout.CheckoutViewModel
 import com.fitting4u.fitting4u.ui.theme.Fitting4UTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.razorpay.PaymentResultListener
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
-
+class MainActivity : ComponentActivity() , PaymentResultListener{
+//    @Inject lateinit var checkoutVm: CheckoutViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -52,5 +56,23 @@ class MainActivity : ComponentActivity() {
 
             }
         }
+    }
+
+    override fun onPaymentSuccess(razorpayPaymentId: String) {
+        // Important: signature & order_id are also passed — follow SDK docs
+        val verifyReq = VerifyRequestModel(
+            razorpay_order_id = "<order id from razorpay callback>",
+            razorpay_payment_id = razorpayPaymentId,
+            razorpay_signature = "<signature from callback>"
+        )
+//        checkoutVm.verifyPayment(verifyReq) { verified ->
+//            if (verified) {
+//                // build ConfirmOrderRequest and call checkoutVm.confirmOrder(...)
+//            }
+//        }
+    }
+
+    override fun onPaymentError(code: Int, response: String?) {
+        // show toast / update UI
     }
 }

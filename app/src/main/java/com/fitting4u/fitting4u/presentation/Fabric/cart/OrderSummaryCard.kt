@@ -8,14 +8,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.fitting4u.fitting4u.presentation.Fabric.Checkout.CheckoutUiState
 import com.fitting4u.fitting4u.ui.theme.PrimaryBlue
-
 @Composable
 fun OrderSummaryCard(
     subtotal: Double,
     delivery: Double,
     total: Double,
-    onCheckout: () -> Unit,
+    ui: CheckoutUiState,
+    onProceedToShipping: () -> Unit,
+    onPay: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -34,14 +36,12 @@ fun OrderSummaryCard(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // HEADER
             Text(
                 "Order Summary",
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 color = PrimaryBlue
             )
 
-            // PRICE ROWS
             SummaryRow("Subtotal", "₹${"%.2f".format(subtotal)}")
             SummaryRow("Delivery", if (delivery <= 0.0) "Free" else "₹$delivery")
 
@@ -51,37 +51,36 @@ fun OrderSummaryCard(
                 modifier = Modifier.padding(vertical = 4.dp)
             )
 
-            // TOTAL HIGHLIGHT ROW
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    "Total",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = PrimaryBlue
-                )
-                Text(
-                    "₹${"%.2f".format(total)}",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = PrimaryBlue
-                )
+                Text("Total", fontWeight = FontWeight.Bold, color = PrimaryBlue)
+                Text("₹${"%.2f".format(total)}", fontWeight = FontWeight.Bold, color = PrimaryBlue)
             }
 
-            // CHECKOUT BUTTON
+            // ⭐ MAIN ACTION BUTTON
             Button(
-                onClick = onCheckout,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
                 shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = PrimaryBlue
-                ),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
+
+                onClick = {
+                    if (!(ui.shippingConfirmed)) {
+                        onProceedToShipping()
+                    } else {
+                        onPay()
+                    }
+                }
             ) {
                 Text(
-                    "Proceed to Pay",
+                    text = if (!ui.shippingConfirmed)
+                        "Proceed to Shipping"
+                    else
+                        "Pay ₹${"%.2f".format(total)}",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = Color.White
                 )

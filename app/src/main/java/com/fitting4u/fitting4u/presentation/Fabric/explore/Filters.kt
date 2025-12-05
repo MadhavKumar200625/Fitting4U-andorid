@@ -23,8 +23,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +37,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -101,16 +104,15 @@ fun FilterBottomSheet(
     val coroutine = rememberCoroutineScope()
     val density = LocalDensity.current
 
-    // Local selected before Apply
+    // Temporary local selection before Apply
     val localSelected = remember { mutableStateMapOf<String, String?>() }
 
-    // sync localSelected when sheet opens
     LaunchedEffect(visible) {
         localSelected.clear()
         appliedFilters.forEach { (k, v) -> localSelected[k] = v }
     }
 
-    val sheetHeight = 420.dp
+    val sheetHeight = 480.dp
     val sheetOffset = remember { Animatable(1f) }
 
     LaunchedEffect(visible) {
@@ -120,7 +122,7 @@ fun FilterBottomSheet(
 
     Box(Modifier.fillMaxSize()) {
 
-        // Dim background
+        // Background Fade Overlay
         Box(
             Modifier
                 .fillMaxSize()
@@ -133,7 +135,7 @@ fun FilterBottomSheet(
                 }
         )
 
-        // Sheet
+        // Bottom Sheet
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -143,63 +145,85 @@ fun FilterBottomSheet(
                 }
                 .fillMaxWidth()
                 .height(sheetHeight)
-                .clip(RoundedCornerShape(20.dp))
+                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 .background(Color.White)
-                .border(1.dp, Color(0xFFE8EDF3), RoundedCornerShape(20.dp))
+                .shadow(12.dp)
         ) {
 
-            Column(Modifier.fillMaxSize().padding(16.dp)) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
+            ) {
 
+                // Header Row
                 Row(
                     Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Filters", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                    Text(
+                        "Filters",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.weight(1f)
+                    )
+
                     IconButton(onClick = {
                         coroutine.launch {
                             sheetOffset.animateTo(1f, tween(200))
                             onDismissRequest()
                         }
-                    }) { Icon(Icons.Default.Close, null) }
+                    }) {
+                        Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.Gray)
+                    }
                 }
 
-                Spacer(Modifier.height(6.dp))
+                // Clear All
+                Text(
+                    "Clear all",
+                    color = Color(0xFFDC3545),
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier
+                        .padding(bottom = 10.dp)
+                        .align(Alignment.End)
+                        .clickable {
+                            localSelected.clear()
+                            onClearAll()
+                        }
+                )
 
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    Text("Clear all", color = Color.Red, modifier = Modifier.clickable {
-                        localSelected.clear()
-                        onClearAll()
-                    })
-                }
-
-                Spacer(Modifier.height(10.dp))
-
+                // Filter sections scrollable
                 Column(
                     Modifier
-                        .fillMaxWidth()
                         .weight(1f)
                         .verticalScroll(rememberScrollState())
                 ) {
+
                     filters.forEach { (key, list) ->
                         if (list.isNotEmpty()) {
-                            Text(key.uppercase(), fontWeight = FontWeight.Medium)
+
+                            Text(
+                                key.uppercase(),
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color(0xFF003466)
+                                )
+                            )
+
                             Spacer(Modifier.height(6.dp))
 
                             Row(
                                 Modifier.horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 list.forEach { value ->
 
                                     val isSelected = localSelected[key] == value
 
-                                    FilterChipItem(
+                                    FilterChipModern(
                                         label = value,
                                         selected = isSelected,
-                                        onXClick = {
-                                            localSelected.remove(key)
-                                            appliedFilters.remove(key)
-                                        },
                                         onClick = {
                                             if (isSelected) {
                                                 localSelected.remove(key)
@@ -210,11 +234,13 @@ fun FilterBottomSheet(
                                     )
                                 }
                             }
-                            Spacer(Modifier.height(12.dp))
+
+                            Spacer(Modifier.height(16.dp))
                         }
                     }
                 }
 
+                // Floating Apply Button (always visible)
                 Button(
                     onClick = {
                         coroutine.launch {
@@ -222,9 +248,22 @@ fun FilterBottomSheet(
                             onApply(localSelected.toMap())
                         }
                     },
-                    modifier = Modifier.align(Alignment.End)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp)
+                        .height(54.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF003466)
+                    )
                 ) {
-                    Text("Apply")
+                    Text(
+                        "Apply Filters",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    )
                 }
             }
         }
@@ -236,33 +275,25 @@ fun FilterBottomSheet(
 /* -------------------------------------------------------------------------- */
 
 @Composable
-fun FilterChipItem(
+fun FilterChipModern(
     label: String,
     selected: Boolean,
-    onXClick: () -> Unit,
     onClick: () -> Unit
 ) {
-    val bg = if (selected) Color(0xFF003466) else Color.White
-    val txt = if (selected) Color.White else Color(0xFF003466)
-
-    Box(
-        Modifier
-            .clip(RoundedCornerShape(18.dp))
-            .background(bg)
-            .border(1.dp, Color(0xFFE6ECF3), RoundedCornerShape(18.dp))
-            .clickable { onClick() }
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+    Surface(
+        shape = RoundedCornerShape(22.dp),
+        color = if (selected) Color(0xFF003466) else Color(0xFFF1F4F9),
+        tonalElevation = if (selected) 4.dp else 0.dp,
+        shadowElevation = if (selected) 4.dp else 0.dp,
+        modifier = Modifier.clickable { onClick() }
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(label, color = txt)
-            if (selected) {
-                Spacer(Modifier.width(6.dp))
-                Text("×",
-                    color = txt,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { onXClick() }
-                )
-            }
-        }
+        Text(
+            label,
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
+            color = if (selected) Color.White else Color(0xFF003466),
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = FontWeight.Medium
+            )
+        )
     }
 }

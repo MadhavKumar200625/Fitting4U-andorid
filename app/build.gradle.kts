@@ -119,6 +119,7 @@ dependencies {
 // OTP Auto Read
     implementation("com.google.android.gms:play-services-auth:21.4.0")
     implementation("com.google.android.gms:play-services-auth-api-phone:18.3.0")
+    implementation("com.razorpay:checkout:1.6.33")
 
 
 }

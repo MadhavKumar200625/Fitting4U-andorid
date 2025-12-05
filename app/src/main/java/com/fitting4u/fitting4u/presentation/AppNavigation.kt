@@ -26,13 +26,14 @@ import androidx.navigation.navArgument
 import com.fitting4u.fitting4u.presentation.BottomNavigation.BottomNavItem
 import com.fitting4u.fitting4u.presentation.BottomNavigation.MainBottomNavigation
 import com.fitting4u.fitting4u.presentation.Fabric.CartViewModel
+import com.fitting4u.fitting4u.presentation.Fabric.Checkout.CheckoutScreen
 import com.fitting4u.fitting4u.presentation.Fabric.FloatingCartSummaryBar
 import com.fitting4u.fitting4u.presentation.Fabric.explore.FabricExploreScreen
 import com.fitting4u.fitting4u.presentation.Fabric.Home.FabricHomeScreen
+import com.fitting4u.fitting4u.presentation.Fabric.boutique.boutique_detail.BoutiqueDetailScreen
+import com.fitting4u.fitting4u.presentation.Fabric.boutique.home.BoutiqueSearchScreen
 import com.fitting4u.fitting4u.presentation.Fabric.fabric_details.FabricDetailScreen
-import com.fitting4u.fitting4u.presentation.Fabric.cart.CartScreen
-import com.fitting4u.fitting4u.presentation.boutique.boutique_detail.BoutiqueDetailScreen
-import com.fitting4u.fitting4u.presentation.boutique.home.BoutiqueSearchScreen
+//import com.fitting4u.fitting4u.presentation.Fabric.cart.CartScreen
 import com.fitting4u.fitting4u.presentation.common.UserViewModel
 import com.fitting4u.fitting4u.presentation.common.sheet.LoginBottomSheet
 import com.fitting4u.fitting4u.presentation.config.ConfigViewModel
@@ -91,7 +92,7 @@ fun AppNavigation(
                 FabricDetailScreen(id, navController, cartVM = cartVM)
             }
 
-            composable(BottomNavItem.Boutiques.route) { BoutiqueSearchScreen(onClickBoutique = {it-> navController.navigate("boutiqueDetail/${it}")}) }
+            composable(BottomNavItem.Boutiques.route) { BoutiqueSearchScreen(onClickBoutique = { it-> navController.navigate("boutiqueDetail/${it}")}) }
             composable(BottomNavItem.DesignNow.route) { DesignNowScreen() }
             composable(BottomNavItem.HomeMeasurement.route) { HomeMeasurementScreen() }
             composable(BottomNavItem.Account.route) { AccountScreen() }
@@ -105,21 +106,31 @@ fun AppNavigation(
                 BoutiqueDetailScreen(
                     id = slug,
                     onNavigateToBoutiqueSearch = {
-
+                        navController.navigate(BottomNavItem.Boutiques.route)
+                    },
+                    onClickBoutique = {it->
+                        navController.navigate("boutiqueDetail/${it}")
                     }
                 )
             }
-
-            // ⭐ SIMPLE LOGIN FLOW ⭐
             composable(NavRoutes.Cart) {
                 if (isLoggedIn) {
-                    CartScreen(navController, cartVM)
+                    CheckoutScreen(navController)
                 } else {
-                    userVM.openLoginSheetFor {
-                        navController.navigate(NavRoutes.Cart)
-                    }
+                    userVM.openLoginSheetFor { navController.navigate(NavRoutes.Checkout) }
                 }
             }
+
+            // ⭐ SIMPLE LOGIN FLOW ⭐
+//            composable(NavRoutes.Cart) {
+//                if (isLoggedIn) {
+//                    CartScreen(navController, cartVM)
+//                } else {
+//                    userVM.openLoginSheetFor {
+//                        navController.navigate(NavRoutes.Cart)
+//                    }
+//                }
+//            }
         }
     }
 
@@ -129,7 +140,7 @@ fun AppNavigation(
         cartVM = cartVM
     )
 
-    // ⭐ NEW SIMPLE SHEET HANDLER ⭐
+
     if (ui.showLoginSheet) {
         Box(
             Modifier
@@ -152,10 +163,7 @@ fun AppNavigation(
 }
 
 
-@Composable
-fun CheckoutScreen(x0: NavHostController) {
-    Text("this is checkout screen")
-}
+
 
 @Composable
 fun FloatingCartArea(

@@ -8,7 +8,7 @@ import retrofit2.http.Query
 
 interface BoutiqueApi {
 
-    @GET("/api/boutiques/application")
+    @GET("/api/boutiques/search")
     suspend fun searchBoutiques(
         @Query("search") search: String = "",
         @Query("type") type: String = "All",
